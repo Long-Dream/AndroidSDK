@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>APK上传</title>
+    <link rel='stylesheet' href='/css/bootstrap.min.css' />
+    <script src="/js/vue.min.js"></script>
+    <script src="/js/vue-resource.min.js"></script>
+</head>
+<body id="app" class="col-md-offset-1 col-md-10">
+    <h1>欢迎使用 Android 第三方 SDK 分析系统</h1>
+    <hr>
+    <div v-if="currentState === 1">
+        <h2>上传文件</h2>
+        <input type="file" name="file" id="apkFile" @change="checkFileName()">
+        <button v-if="uploadOpen" class="btn btn-primary" @click="uploadFile()">确认上传</button>
+        <p v-if="fileWarning !== ''" class="file-warning">{{ fileWarning }}</p>
+        <p v-if="fileWarning === '正在上传文件中...请稍后...'" class="file-warning">已上传 {{ (progress * 100).toFixed(2) }}%</p>
+    </div>
+    <div v-if="currentState === 2">
+        <template v-if="analyseResult !== ''">
+            <h2>分析结果</h2>
+            <p>{{{ analyseResult }}}</p>
+        </template>
+        <template v-if="analyseError !== ''">
+            <h2>在分析过程中发生错误</h2>
+            <p>{{{ analyseError }}}</p>
+        </template>
+        <button class="btn btn-primary" @click="reUploadFile()">重新上传APK文件</button>
+    </div>
+
+
+    <script type="text/javascript">
+        var app = new Vue({
+            el : "#app",
+            data : {
+                uploadOpen  : false,        // 只有在文件内容更改后才允许上传文件
+                fileWarning : "",           // 上传文件中的警告信息
+                currentState : 1,           // 当前模式, 1 代表上传文件模式, 2 代表展示分析结果模式
+                analyseResult : "清江野鱼推广委员会 表示这个APK很好!",           // APK 分析结果
+                analyseError  : "清江野鱼推广委员会 表示这个APK就是个辣鸡!",      // APK 分析错误
+                apkMD5 : "",                // 已上传的 apk 文件的MD5值
+                uploadTotal : 1,            // 文件总大小
+                uploadLoaded : 0            // 当前已上传的大小
+            },
+            computed : {
+                progress : function(){
+                    return this.uploadLoaded / this.uploadTotal;
+                }
+            },
+            methods : {
+
+                /**
+                 * 实现文件的上传功能----前端实现
+                 */
+                uploadFile : function() {
+                    var file = document.getElementById("apkFile").files[0];
+
+                    // 禁止重复上传
+                    this.fileWarning = "正在上传文件中...请稍后...";
+                    this.uploadOpen  = false;
+                    
+                    // 构建新的 FormData
+                    var fileFormData = new FormData();
+                    fileFormData.append("apkFile", file);
+                    fileFormData.append("apkFileName", file.name);
+
+                    var that = this;
+                    this.$http.post('/uploadAPK', fileFormData, {
+                        progress : function(event){
+                            console.log(event.total);
+                            that.uploadTotal = event.total;
+                            that.uploadLoaded = event.loaded;
+                        }
+                    }).then(function(res){
+                        if(res.data.length === 32){
+                            this.apkMD5 = res.data;
+                            this.fileWarning = "正在分析文件中...请稍后...";
+                            setTimeout(function(){that.checkAnalyse(that.apkMD5); }, 1000)
+                        } else {
+                            alert(res.data);
+                        }
+                    }, function(err){
+                        console.log(err);
+                    })
+
+                },
+
+                /**
+                 * 定时检查分析结果
+                 * 参数为要检查的 apk 的 md5
+                 */
+                checkAnalyse : function(apkMD5){
+
+                    var that = this;
+
+                    this.$http.post('/checkAnalyse', {apkMD5 : apkMD5}).then(function(res){
+
+                        // 如果返回的数据是 -1, 就说明还没有分析完
+                        if(res.data === "-1"){
+                            return setTimeout(function(){that.checkAnalyse(that.apkMD5); }, 1000);
+                        } else {
+                            this.currentState  = 2;
+                            this.analyseResult = res.data.message;
+                            this.analyseError  = res.data.error;
+                        }
+
+                    }, function(err){
+                        console.log(err);
+                    })
+                },
+
+                /**
+                 * 当上传文件的表单改变时, 对文件名进行检查. 只有检查通过才可以进一步上传
+                 */
+                checkFileName : function(){
+                    var fileName = document.getElementById("apkFile").files[0].name;
+
+                    // 检查是否为 apk 文件
+                    if(fileName.indexOf(".apk") === -1){
+                        this.fileWarning = "上传的文件必须是 APK 文件!";
+                        this.uploadOpen  = false;
+                    }
+
+                    // 一切检查通过, 允许上传!
+                    this.fileWarning = "";
+                    this.uploadOpen  = true;
+                },
+
+                /**
+                 * 在分析结果给出后, 进行重新上传
+                 */
+                reUploadFile : function(){
+                    this.fileWarning = "";
+                    this.uploadOpen  = false;
+                    this.currentState = 1;
+                }
+            }
+        })
+    </script>
+    <style type="text/css">
+        #apkFile{
+            display: inline;
+        }
+        .file-warning{
+            font-weight: bold;
+            font-size: 30px;
+            color: red;
+        }
+    </style>
+</body>
+</html>
