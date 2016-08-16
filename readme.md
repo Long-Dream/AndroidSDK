@@ -16,6 +16,8 @@
 
 再先在 server 目录下终端运行 `npm install` 安装必要的依赖
 
+再将 android-platforms 文件夹拷贝至 newSoot 文件夹下
+
 之后在 server 目录下终端运行 `npm start`, 则服务器会在本地的3000端口上启动(http://localhost:3000/),  之后便可以上传apk并进行分析
 
 ## 注意事项
