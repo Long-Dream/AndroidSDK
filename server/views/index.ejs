@@ -143,6 +143,7 @@
                     if(fileName.indexOf(".apk") === -1){
                         this.fileWarning = "上传的文件必须是 APK 文件!";
                         this.uploadOpen  = false;
+                        return;
                     }
 
                     // 一切检查通过, 允许上传!
