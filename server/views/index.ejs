@@ -17,13 +17,29 @@
         <p v-if="fileWarning === '正在上传文件中...请稍后...'" class="file-warning">已上传 {{ (progress * 100).toFixed(2) }}%</p>
     </div>
     <div v-if="currentState === 2">
-        <template v-if="analyseResult !== ''">
-            <h2>分析结果</h2>
-            <p>{{{ analyseResult }}}</p>
+        <template v-if="javaErr">
+            <h2 class="error">在启动分析程序的过程中发生错误</h2>
+            <p class="error">{{{ javaErr }}}</p>
         </template>
-        <template v-if="analyseError !== ''">
-            <h2>在分析过程中发生错误</h2>
-            <p>{{{ analyseError }}}</p>
+        <template v-if="analyseError">
+            <h2 class="error">在分析过程中发生错误</h2>
+            <p class="error">{{{ analyseError }}}</p>
+        </template>
+        <template v-if="analysis_api">
+            <h2>APK 漏洞API 分析结果</h2>
+            <p>{{{ analysis_api }}}</p>
+        </template>
+        <template v-if="analysis_order">
+            <h2>APK 调用序列 分析结果</h2>
+            <p>{{{ analysis_order }}}</p>
+        </template>
+        <template v-if="analysis_permission">
+            <h2>APK 申请权限 分析结果</h2>
+            <p>{{{ analysis_permission }}}</p>
+        </template>
+        <template v-if="analysis_sdk">
+            <h2>APK 第三方SDK 分析结果</h2>
+            <p>{{{ analysis_sdk }}}</p>
         </template>
         <button class="btn btn-primary" @click="reUploadFile()">重新上传APK文件</button>
     </div>
@@ -33,14 +49,18 @@
         var app = new Vue({
             el : "#app",
             data : {
-                uploadOpen  : false,        // 只有在文件内容更改后才允许上传文件
-                fileWarning : "",           // 上传文件中的警告信息
-                currentState : 1,           // 当前模式, 1 代表上传文件模式, 2 代表展示分析结果模式
-                analyseResult : "清江野鱼推广委员会 表示这个APK很好!",           // APK 分析结果
-                analyseError  : "清江野鱼推广委员会 表示这个APK就是个辣鸡!",      // APK 分析错误
-                apkMD5 : "",                // 已上传的 apk 文件的MD5值
-                uploadTotal : 1,            // 文件总大小
-                uploadLoaded : 0            // 当前已上传的大小
+                uploadOpen          : false,                // 只有在文件内容更改后才允许上传文件
+                fileWarning         : "",                   // 上传文件中的警告信息
+                currentState        : 1,                    // 当前模式, 1 代表上传文件模式, 2 代表展示分析结果模式
+                analysis_api        : "清江野鱼推广委员会 表示这个APK很好!",           // APK 漏洞API 分析结果
+                analysis_order      : "清江野鱼推广委员会 表示这个APK很好!",           // APK 调用序列 分析结果
+                analysis_permission : "清江野鱼推广委员会 表示这个APK很好!",           // APK 申请权限 分析结果
+                analysis_sdk        : "清江野鱼推广委员会 表示这个APK很好!",           // APK 第三方SDK 分析结果
+                analyseError        : "清江野鱼推广委员会 表示这个APK就是个辣鸡!",      // APK 分析错误
+                javaErr             : "清江野鱼推广委员会 表示他们无法分析这个APK!",    // java 程序调用错误
+                apkMD5              : "",                   // 已上传的 apk 文件的MD5值
+                uploadTotal         : 1,                    // 文件总大小
+                uploadLoaded        : 0                     // 当前已上传的大小
             },
             computed : {
                 progress : function(){
@@ -99,9 +119,13 @@
                         if(res.data === "-1"){
                             return setTimeout(function(){that.checkAnalyse(that.apkMD5); }, 1000);
                         } else {
-                            this.currentState  = 2;
-                            this.analyseResult = res.data.message;
-                            this.analyseError  = res.data.error;
+                            this.currentState        = 2;
+                            this.analysis_api        = res.data.analysis_api;
+                            this.analysis_order      = res.data.analysis_order;
+                            this.analysis_permission = res.data.analysis_permission;
+                            this.analysis_sdk        = res.data.analysis_sdk;
+                            this.analyseError        = res.data.error;
+                            this.javaErr             = res.data.javaErr;
                         }
 
                     }, function(err){
@@ -138,12 +162,18 @@
         })
     </script>
     <style type="text/css">
+        #app{
+            font-family: "微软雅黑";
+        }
         #apkFile{
             display: inline;
         }
         .file-warning{
             font-weight: bold;
             font-size: 30px;
+            color: red;
+        }
+        .error{
             color: red;
         }
     </style>
