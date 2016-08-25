@@ -25,6 +25,10 @@
             <h2 class="error">在分析过程中发生错误</h2>
             <p class="error">{{{ analyseError }}}</p>
         </template>
+        <template v-if="analysis_minapilevel">
+            <h2>APK 可以支持的最低 API LEVEL : </h2>
+            <p>{{{ analysis_minapilevel }}}</p>
+        </template>
         <template v-if="analysis_api">
             <h2>APK 漏洞API 分析结果</h2>
             <p>{{{ analysis_api }}}</p>
@@ -56,6 +60,7 @@
                 analysis_order      : "清江野鱼推广委员会 表示这个APK很好!",           // APK 调用序列 分析结果
                 analysis_permission : "清江野鱼推广委员会 表示这个APK很好!",           // APK 申请权限 分析结果
                 analysis_sdk        : "清江野鱼推广委员会 表示这个APK很好!",           // APK 第三方SDK 分析结果
+                analysis_minapilevel: "清江野鱼推广委员会 表示这个APK很好!",           // APK 可以支持的最低 API LEVEL
                 analyseError        : "清江野鱼推广委员会 表示这个APK就是个辣鸡!",      // APK 分析错误
                 javaErr             : "清江野鱼推广委员会 表示他们无法分析这个APK!",    // java 程序调用错误
                 apkMD5              : "",                   // 已上传的 apk 文件的MD5值
@@ -119,15 +124,15 @@
                         if(res.data === "-1"){
                             return setTimeout(function(){that.checkAnalyse(that.apkMD5); }, 1000);
                         } else {
-                            this.currentState        = 2;
-                            this.analysis_api        = res.data.analysis_api;
-                            this.analysis_order      = res.data.analysis_order;
-                            this.analysis_permission = res.data.analysis_permission;
-                            this.analysis_sdk        = res.data.analysis_sdk;
-                            this.analyseError        = res.data.error;
-                            this.javaErr             = res.data.javaErr;
+                            this.currentState         = 2;
+                            this.analysis_api         = res.data.analysis_api;
+                            this.analysis_order       = res.data.analysis_order;
+                            this.analysis_permission  = res.data.analysis_permission;
+                            this.analysis_sdk         = res.data.analysis_sdk;
+                            this.analysis_minapilevel = res.data.analysis_minapilevel;
+                            this.analyseError         = res.data.error;
+                            this.javaErr              = res.data.javaErr;
                         }
-
                     }, function(err){
                         console.log(err);
                     })
