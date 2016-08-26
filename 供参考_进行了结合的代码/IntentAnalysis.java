@@ -12,7 +12,7 @@ import soot.jimple.InvokeStmt;
 
 public class IntentAnalysis {
 	
-	private static final String TAG = "---------IntentAnalysis---------";
+	//private static final String TAG = "---------IntentAnalysis---------";
 
 	private static String invokeActivity = null;
 	private static String targetActivity = null;
@@ -45,7 +45,16 @@ public class IntentAnalysis {
 					List<Value> args = invokeExpr.getArgs();
 					if (args.size() == 1) {
 						// TODO
-						System.out.println(TAG + args.get(0).toString() + args.get(0).getType());
+						//System.out.println(TAG + args.get(0).toString() + " " + args.get(0).getType());
+						
+						String arg = invokeExpr.getArg(0).toString();
+						Stack<String> act = locate(arg);
+						while(!act.isEmpty()) {
+							targetActivity = act.pop();
+
+							activityMap.get(invokeActivity).add(targetActivity);
+						}
+						
 					}
 					if (args.size() == 2) {
 						if (args.get(1).getType().toString().equals("java.lang.Class")) {
@@ -53,14 +62,16 @@ public class IntentAnalysis {
 							if (targetActivity.contains("\"")) {
 								targetActivity = targetActivity.split("\"")[1].replace('/', '.');
 							}
-							break;
+							activityMap.get(invokeActivity).add(targetActivity);
+							
 						}
 					}
 				}else if (methodName.equals("setClass")) {
 					targetActivity = invokeExpr.getArg(1).toString();
 					if (targetActivity.contains("\""))
 						targetActivity = targetActivity.split("\"")[1].replace('/', '.');
-					break;
+					activityMap.get(invokeActivity).add(targetActivity);
+					
 				}else if (methodName.equals("setClassName")) {
 					try {
 						targetActivity = invokeExpr.getArg(1).toString();
@@ -68,27 +79,33 @@ public class IntentAnalysis {
 						return;
 					}
 					targetActivity = (targetActivity.substring(1, targetActivity.length() - 1)).replace("/", ".");
-					break;
+					activityMap.get(invokeActivity).add(targetActivity);
+					
 				}else if (methodName.equals("setAction")) {
 					// TODO
-					//String args = invokeExpr.getArg(0).toString();
-					/*
-					while(targetActivity = locate(args).pop) {
+					
+					String args = invokeExpr.getArg(0).toString();
+					Stack<String> act = locate(args);
+					while(!act.isEmpty()) {
+						targetActivity = act.pop();
+
 						activityMap.get(invokeActivity).add(targetActivity);
 					}
-					*/
+					
+					
 					
 				}else if (invokeExpr.getMethod().getDeclaringClass().getName().equals("android.content.ComponentName")) {
 					if (methodName.equals("<init>")) {
 						targetActivity = invokeExpr.getArg(1).toString();
 						if (targetActivity.contains("\"") && !targetActivity.equals("\"\""))
 							targetActivity = targetActivity.split("\"")[1];
-						break;
+						activityMap.get(invokeActivity).add(targetActivity);
+						
 					}
 				}
 			}
 			unitStack.clear();
-			activityMap.get(invokeActivity).add(targetActivity);
+			//activityMap.get(invokeActivity).add(targetActivity);
 		}
 		
 //	}
@@ -96,5 +113,16 @@ public class IntentAnalysis {
 	public static Map<String, Set<String>> getAllActivity(){
 		return activityMap;
 	}
-
+	
+	private static Stack<String> locate(String argu) {
+		Stack<String> stack = new Stack<String>();
+		if (argu.equals("\"com.example.intenttest.ACTION_START\"")) {
+			stack.add("com.example.intenttest.A5");
+		}
+		if (argu.equals("\"com.example.intenttest.ANOTHER_ACTION_START\"")) {
+			stack.add("com.example.intenttest.A6");
+		}
+		return stack;
+	}
+	
 }
