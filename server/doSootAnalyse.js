@@ -1,4 +1,4 @@
-"use strict";
+"use strict"; 
 
 var fs         = require('fs');
 var cp         = require('child_process');
@@ -76,7 +76,7 @@ function doSootAnalyse(path, javaPath, resultPath, resultArr, callback){
 
                 // 将换行符变成标准的 HTML 的换行
                 for (let i in fileObj){
-                    result[i] = html_encode(fileObj[i]);
+                    result[i] = fileObj[i];
                 }
 
                 console.log("apk 文件分析完成!")
@@ -117,24 +117,6 @@ function readFileToHandle(filePath, fileName, callback){
         })
     }
 }
-
-/**
- * 将非 HTML 的内容进行转义
- * @param  {string} str 待转义字符串
- * @return {string}     已转义字符串
- */
-function html_encode(str) {   
-    var s = "";   
-    if (str.length == 0) return "";   
-    s = str.replace(/&/g, "&gt;");   
-    s = s.replace(/</g, "&lt;");   
-    s = s.replace(/>/g, "&gt;");   
-    s = s.replace(/ /g, "&nbsp;");   
-    s = s.replace(/\'/g, "&#39;");   
-    s = s.replace(/\"/g, "&quot;");   
-    s = s.replace(/\n/g, "<br>");   
-    return s;   
-}   
 
 /**
  * 清空指定文件夹, 指定文件夹必须存在

@@ -13,6 +13,8 @@ var doSootAnalyse = require("../doSootAnalyse.js")
 var resultpath    = "../result/";
 var apkTempPath   = "../apkTemp/"
 
+var resultArr = ["analysis_api", "analysis_order", "analysis_permission", "analysis_sdk", "analysis_minapilevel"];
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
     res.render('index', { title: 'Express' });
@@ -55,11 +57,9 @@ router.post('/uploadAPK', function(req, res, next){
         }, function(err){
             if(err) throw err;
             res.send(apkMD5)
-            doSootAnalyse(`../apkTemp/${apkMD5}.apk`, `../newSoot/newSoot.jar`, resultpath, ["analysis_api", "analysis_order", "analysis_permission", "analysis_sdk", "analysis_minapilevel"], function(err, data){
+            doSootAnalyse(`../apkTemp/${apkMD5}.apk`, `../newSoot/newSoot.jar`, resultpath, resultArr, function(err, data){
                 
                 if(err) throw err;
-
-                console.log(data);
 
                 db.collection("apkDetail").findOne({apkMD5 : apkMD5}, function(err, result){
                     if(err) throw err;
@@ -104,13 +104,13 @@ router.post('/checkAnalyse', function(req, res, next){
         if(result.state === 2){
             var obj = {
                 code                 : result.code,
-                analysis_api         : result.analysis_api,
-                analysis_order       : result.analysis_order,
-                analysis_permission  : result.analysis_permission,
-                analysis_sdk         : result.analysis_sdk,
-                analysis_minapilevel : result.analysis_minapilevel,
                 error                : result.error
             };
+
+            resultArr.forEach(function(item){
+                obj[item] = html_encode(result[item]);
+            })
+
             return res.send(obj);
         }
     })
@@ -126,6 +126,24 @@ router.post('/checkAnalyse', function(req, res, next){
 function md5 (text) {
     return crypto.createHash('md5').update(text).digest('hex');
 };
+
+/**
+ * 将非 HTML 的内容进行转义
+ * @param  {string} str 待转义字符串
+ * @return {string}     已转义字符串
+ */
+function html_encode(str) {   
+    var s = "";   
+    if (str.length == 0) return "";   
+    s = str.replace(/&/g, "&gt;");   
+    s = s.replace(/</g, "&lt;");   
+    s = s.replace(/>/g, "&gt;");   
+    s = s.replace(/ /g, "&nbsp;");   
+    s = s.replace(/\'/g, "&#39;");   
+    s = s.replace(/\"/g, "&quot;");   
+    s = s.replace(/\n/g, "<br>");   
+    return s;   
+}   
 
 
 module.exports = router;
