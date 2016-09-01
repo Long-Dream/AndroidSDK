@@ -13,7 +13,7 @@ var doSootAnalyse = require("../doSootAnalyse.js")
 var resultpath    = "../result/";
 var apkTempPath   = "../apkTemp/"
 
-var resultArr = ["analysis_api", "analysis_order", "analysis_permission", "analysis_sdk", "analysis_minapilevel"];
+var resultArr = ["analysis_api", "analysis_order", "analysis_permission", "analysis_sdk", "analysis_minapilevel", "analysis_activity_and_action"];
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -26,12 +26,9 @@ router.get('/', function(req, res, next) {
 router.post('/uploadAPK', function(req, res, next){
 
     // 事先清空所有 result 文件
-    fs.writeFile(resultpath + "analysis_api.txt", "", function(err){if(err) throw err; })
-    fs.writeFile(resultpath + "analysis_order.txt", "", function(err){if(err) throw err; })
-    fs.writeFile(resultpath + "analysis_permission.txt", "", function(err){if(err) throw err; })
-    fs.writeFile(resultpath + "analysis_sdk.txt", "", function(err){if(err) throw err; })
-    fs.writeFile(resultpath + "analysis_minapilevel.txt", "", function(err){if(err) throw err; })
-
+    for (let i = 0; i < resultArr.length; i++) {
+        fs.writeFile(`${resultpath}${resultArr[i]}.txt`, "", function(err){if(err) throw err; })
+    }
 
     var form = new formidable.IncomingForm();
     form.uploadDir = apkTempPath;
@@ -65,13 +62,9 @@ router.post('/uploadAPK', function(req, res, next){
                     if(err) throw err;
 
                     result.state                = 2;
-                    result.analysis_api         = data.analysis_api;
-                    result.analysis_order       = data.analysis_order;
-                    result.analysis_permission  = data.analysis_permission;
-                    result.analysis_sdk         = data.analysis_sdk;
-                    result.analysis_minapilevel = data.analysis_minapilevel;
-                    result.javaErr              = data.javaErr;
-                    result.error                = data.textErr;
+                    for (let i in data) {
+                        result[i] = data[i];
+                    }
 
                     db.collection("apkDetail").update({ apkMD5 : apkMD5 }, result, function(err){
                         if(err) throw err;
@@ -108,6 +101,7 @@ router.post('/checkAnalyse', function(req, res, next){
             };
 
             resultArr.forEach(function(item){
+                console.log(item, result[item]);
                 obj[item] = html_encode(result[item]);
             })
 

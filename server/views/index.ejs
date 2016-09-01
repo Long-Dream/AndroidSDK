@@ -37,6 +37,10 @@
             <h2>APK 调用序列 分析结果</h2>
             <p>{{{ analysis_order }}}</p>
         </template>
+        <template v-if="analysis_activity_and_action">
+            <h2>APK 当中的 Activity 和 Action 分析结果</h2>
+            <p>{{{ analysis_activity_and_action }}}</p>
+        </template>
         <template v-if="analysis_permission">
             <h2>APK 申请权限 分析结果</h2>
             <p>{{{ analysis_permission }}}</p>
@@ -53,19 +57,20 @@
         var app = new Vue({
             el : "#app",
             data : {
-                uploadOpen          : false,                // 只有在文件内容更改后才允许上传文件
-                fileWarning         : "",                   // 上传文件中的警告信息
-                currentState        : 1,                    // 当前模式, 1 代表上传文件模式, 2 代表展示分析结果模式
-                analysis_api        : "清江野鱼推广委员会 表示这个APK很好!",           // APK 漏洞API 分析结果
-                analysis_order      : "清江野鱼推广委员会 表示这个APK很好!",           // APK 调用序列 分析结果
-                analysis_permission : "清江野鱼推广委员会 表示这个APK很好!",           // APK 申请权限 分析结果
-                analysis_sdk        : "清江野鱼推广委员会 表示这个APK很好!",           // APK 第三方SDK 分析结果
-                analysis_minapilevel: "清江野鱼推广委员会 表示这个APK很好!",           // APK 可以支持的最低 API LEVEL
-                analyseError        : "清江野鱼推广委员会 表示这个APK就是个辣鸡!",      // APK 分析错误
-                javaErr             : "清江野鱼推广委员会 表示他们无法分析这个APK!",    // java 程序调用错误
-                apkMD5              : "",                   // 已上传的 apk 文件的MD5值
-                uploadTotal         : 1,                    // 文件总大小
-                uploadLoaded        : 0                     // 当前已上传的大小
+                uploadOpen                   : false,                // 只有在文件内容更改后才允许上传文件
+                fileWarning                  : "",                   // 上传文件中的警告信息
+                currentState                 : 1,                    // 当前模式, 1 代表上传文件模式, 2 代表展示分析结果模式
+                analysis_api                 : "清江野鱼推广委员会 表示这个APK很好!",           // APK 漏洞API 分析结果
+                analysis_order               : "清江野鱼推广委员会 表示这个APK很好!",           // APK 调用序列 分析结果
+                analysis_permission          : "清江野鱼推广委员会 表示这个APK很好!",           // APK 申请权限 分析结果
+                analysis_sdk                 : "清江野鱼推广委员会 表示这个APK很好!",           // APK 第三方SDK 分析结果
+                analysis_minapilevel         : "清江野鱼推广委员会 表示这个APK很好!",           // APK 可以支持的最低 API LEVEL
+                analysis_activity_and_action : "清江野鱼推广委员会 表示这个APK很好!",           // APK 的 activity 和 action
+                analyseError                 : "清江野鱼推广委员会 表示这个APK就是个辣鸡!",      // APK 分析错误
+                javaErr                      : "清江野鱼推广委员会 表示他们无法分析这个APK!",    // java 程序调用错误
+                apkMD5                       : "",                   // 已上传的 apk 文件的MD5值
+                uploadTotal                  : 1,                    // 文件总大小
+                uploadLoaded                 : 0                     // 当前已上传的大小
             },
             computed : {
                 progress : function(){
@@ -124,14 +129,15 @@
                         if(res.data === "-1"){
                             return setTimeout(function(){that.checkAnalyse(that.apkMD5); }, 1000);
                         } else {
-                            this.currentState         = 2;
-                            this.analysis_api         = res.data.analysis_api;
-                            this.analysis_order       = res.data.analysis_order;
-                            this.analysis_permission  = res.data.analysis_permission;
-                            this.analysis_sdk         = res.data.analysis_sdk;
-                            this.analysis_minapilevel = res.data.analysis_minapilevel;
-                            this.analyseError         = res.data.error;
-                            this.javaErr              = res.data.javaErr;
+                            this.currentState                 = 2;
+                            this.analysis_api                 = res.data.analysis_api;
+                            this.analysis_order               = res.data.analysis_order;
+                            this.analysis_permission          = res.data.analysis_permission;
+                            this.analysis_sdk                 = res.data.analysis_sdk;
+                            this.analysis_minapilevel         = res.data.analysis_minapilevel;
+                            this.analysis_activity_and_action = res.data.analysis_activity_and_action;
+                            this.analyseError                 = res.data.error;
+                            this.javaErr                      = res.data.javaErr;
                         }
                     }, function(err){
                         console.log(err);
